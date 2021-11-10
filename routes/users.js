@@ -10,7 +10,19 @@ router.use(bodyParser.json());
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
-    res.send('respond with a resource');
+    User.find({})
+        .then((user) => {
+            if (user.admin) {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(user);
+            } else {
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.json({ err: err });
+            }
+        }, (err) => next(err))
+        .catch((err) => next(err));
 });
 
 router.post('/signup', (req, res, next) => {
@@ -61,6 +73,15 @@ router.get('/logout', (req, res) => {
         err.status = 403;
         next(err);
     }
+});
+
+router.get('/users', (req, res) => {
+    if (req.session) {
+        req.session.destroy();
+        res.clearCookie('session-id');
+        res.redirect('/');
+    }
+
 });
 
 module.exports = router;
